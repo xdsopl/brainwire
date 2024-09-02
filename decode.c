@@ -5,6 +5,12 @@ Copyright 2024 Ahmet Inan <xdsopl@gmail.com>
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+
+int sgn_int(int x)
+{
+	return (x & 1) ? -(x >> 1) : (x >> 1);
+}
 
 int main(int argc, char **argv) {
 	if (argc != 3) {
@@ -21,9 +27,12 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "could not open %s for writing\n", argv[2]);
 		return 1;
 	}
-	short value;
-	while (fread(&value, 2, 1, input) == 1)
+	short value = 0;
+	unsigned short diff;
+	while (fread(&diff, 2, 1, input) == 1) {
+		value += sgn_int(diff);
 		fwrite(&value, 2, 1, output);
+	}
 	fclose(input);
 	fclose(output);
 	return 0;

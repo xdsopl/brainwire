@@ -5,6 +5,12 @@ Copyright 2024 Ahmet Inan <xdsopl@gmail.com>
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+
+int abs_sgn(int x)
+{
+	return (abs(x) << 1) | (x < 0);
+}
 
 int main(int argc, char **argv) {
 	if (argc != 3) {
@@ -21,9 +27,13 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "could not open %s for writing\n", argv[2]);
 		return 1;
 	}
+	int prev = 0;
 	short value;
-	while (fread(&value, 2, 1, input) == 1)
-		fwrite(&value, 2, 1, output);
+	while (fread(&value, 2, 1, input) == 1) {
+		unsigned short diff = abs_sgn(value - prev);
+		prev = value;
+		fwrite(&diff, 2, 1, output);
+	}
 	fclose(input);
 	fclose(output);
 	return 0;

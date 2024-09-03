@@ -7,9 +7,52 @@ Copyright 2024 Ahmet Inan <xdsopl@gmail.com>
 #include <stdio.h>
 #include <stdlib.h>
 
-int sgn_int(int x)
-{
+int sgn_int(int x) {
 	return (x & 1) ? -(x >> 1) : (x >> 1);
+}
+
+int get_bit(FILE *file) {
+	static int cnt, acc;
+	if (!cnt) {
+		int b = fgetc(file);
+		if (b < 0)
+			return b;
+		acc = b;
+		cnt = 8;
+	}
+	int b = acc & 1;
+	acc >>= 1;
+	cnt -= 1;
+	return b;
+}
+
+int read_bits(FILE *file, int *b, int n) {
+	int a = 0;
+	for (int i = 0; i < n; ++i) {
+		int b = get_bit(file);
+		if (b < 0)
+			return b;
+		a |= b << i;
+	}
+	*b = a;
+	return 0;
+}
+
+int get_vli(FILE *file) {
+	static int order;
+	int val, sum = 0, ret;
+	while ((ret = get_bit(file)) == 0) {
+		sum += 1 << order;
+		order += 1;
+	}
+	if (ret < 0)
+		return ret;
+	if ((ret = read_bits(file, &val, order)))
+		return ret;
+	order -= 1;
+	if (order < 0)
+		order = 0;
+	return val + sum;
 }
 
 int main(int argc, char **argv) {
@@ -37,8 +80,10 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	short value = 0;
-	unsigned short diff;
-	while (fread(&diff, 2, 1, input) == 1) {
+	int diff;
+	while ((diff = get_vli(input)) >= 0) {
+		if (diff == 65536)
+			break;
 		value += sgn_int(diff);
 		fwrite(&value, 2, 1, output);
 	}

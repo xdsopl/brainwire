@@ -7,9 +7,49 @@ Copyright 2024 Ahmet Inan <xdsopl@gmail.com>
 #include <stdio.h>
 #include <stdlib.h>
 
-int abs_sgn(int x)
-{
+int abs_sgn(int x) {
 	return (abs(x) << 1) | (x < 0);
+}
+
+int put_bit(FILE *file, int b) {
+	static int acc, cnt;
+	acc |= !!b << cnt++;
+	if (cnt >= 8) {
+		cnt -= 8;
+		int tmp = acc & 255;
+		acc >>= 8;
+		return fputc(tmp, file) == EOF;
+	}
+	return 0;
+}
+
+int write_bits(FILE *file, int b, int n) {
+	for (int i = 0; i < n; ++i) {
+		int ret = put_bit(file, (b >> i) & 1);
+		if (ret)
+			return ret;
+	}
+	return 0;
+}
+
+int put_vli(FILE *file, int val)
+{
+	static int order;
+	int ret;
+	while (val >= 1 << order) {
+		if ((ret = put_bit(file, 0)))
+			return ret;
+		val -= 1 << order;
+		order += 1;
+	}
+	if ((ret = put_bit(file, 1)))
+		return ret;
+	if ((ret = write_bits(file, val, order)))
+		return ret;
+	order -= 1;
+	if (order < 0)
+		order = 0;
+	return 0;
 }
 
 int main(int argc, char **argv) {
@@ -36,13 +76,13 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "could not write 44 bytes to %s\n", argv[2]);
 		return 1;
 	}
-	int prev = 0;
-	short value;
+	short value, prev = 0;
 	while (fread(&value, 2, 1, input) == 1) {
-		unsigned short diff = abs_sgn(value - prev);
+		put_vli(output, abs_sgn(value - prev));
 		prev = value;
-		fwrite(&diff, 2, 1, output);
 	}
+	put_vli(output, 65536);
+	put_vli(output, 255);
 	fclose(input);
 	fclose(output);
 	return 0;

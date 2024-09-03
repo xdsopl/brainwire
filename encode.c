@@ -11,6 +11,14 @@ int abs_sgn(int x) {
 	return (abs(x) << 1) | (x < 0);
 }
 
+int div_rnd(int n, int d) {
+	if (n < 0)
+		n -= d / 2;
+	else if (n > 0)
+		n += d / 2;
+	return n / d;
+}
+
 int put_bit(FILE *file, int b) {
 	static int acc, cnt;
 	acc |= !!b << cnt++;
@@ -78,8 +86,12 @@ int main(int argc, char **argv) {
 	}
 	short value, prev = 0;
 	while (fread(&value, 2, 1, input) == 1) {
-		put_vli(output, abs_sgn(value - prev));
+		int diff = value - prev;
 		prev = value;
+		int pred = div_rnd(diff, 64);
+		put_vli(output, abs_sgn(pred));
+		int err = diff - pred * 64;
+		put_vli(output, abs_sgn(err));
 	}
 	int sentinel = 1 << 17;
 	put_vli(output, sentinel);

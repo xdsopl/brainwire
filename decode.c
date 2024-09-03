@@ -80,11 +80,11 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	short value = 0;
-	int diff, sentinel = 1 << 17;
-	while ((diff = get_vli(input)) >= 0) {
-		if (diff == sentinel)
+	int pred, err, sentinel = 1 << 17;
+	while ((pred = get_vli(input)) >= 0 && (err = get_vli(input)) >= 0) {
+		if (pred == sentinel)
 			break;
-		value += sgn_int(diff);
+		value += sgn_int(pred) * 64 + sgn_int(err);
 		fwrite(&value, 2, 1, output);
 	}
 	fclose(input);

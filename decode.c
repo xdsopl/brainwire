@@ -7,10 +7,6 @@ Copyright 2024 Ahmet Inan <xdsopl@gmail.com>
 #include <stdio.h>
 #include <stdlib.h>
 
-int sgn_int(int x) {
-	return (x & 1) ? -(x >> 1) : (x >> 1);
-}
-
 int get_bit(FILE *file) {
 	static int cnt, acc;
 	if (!cnt) {
@@ -79,12 +75,16 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	short value = 0;
-	int pred, err, sentinel = 1 << 17;
+	int pred, err, sentinel = 1024;
 	int pred_order = 0, err_order = 0;
 	while ((pred = get_vli(input, &pred_order)) >= 0 && (err = get_vli(input, &err_order)) >= 0) {
 		if (pred == sentinel)
 			break;
-		value += sgn_int(pred) * 64 + sgn_int(err);
+		if (pred && get_bit(input))
+			pred = -pred;
+		if (err && get_bit(input))
+			err = -err;
+		value += pred * 64 + err;
 		fwrite(&value, 2, 1, output);
 	}
 	fclose(input);

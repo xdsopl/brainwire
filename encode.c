@@ -7,10 +7,6 @@ Copyright 2024 Ahmet Inan <xdsopl@gmail.com>
 #include <stdio.h>
 #include <stdlib.h>
 
-int abs_sgn(int x) {
-	return (abs(x) << 1) | (x < 0);
-}
-
 int div_rnd(int n, int d) {
 	if (n < 0)
 		n -= d / 2;
@@ -89,11 +85,15 @@ int main(int argc, char **argv) {
 		int diff = value - prev;
 		prev = value;
 		int pred = div_rnd(diff, 64);
-		put_vli(output, &pred_order, abs_sgn(pred));
+		put_vli(output, &pred_order, abs(pred));
 		int err = diff - pred * 64;
-		put_vli(output, &err_order, abs_sgn(err));
+		put_vli(output, &err_order, abs(err));
+		if (pred)
+			put_bit(output, pred < 0);
+		if (err)
+			put_bit(output, err < 0);
 	}
-	int sentinel = 1 << 17;
+	int sentinel = 1024;
 	put_vli(output, &pred_order, sentinel);
 	put_vli(output, &pred_order, 255);
 	fclose(input);

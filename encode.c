@@ -81,7 +81,8 @@ int main(int argc, char **argv) {
 		put_vli(output, abs_sgn(value - prev));
 		prev = value;
 	}
-	put_vli(output, 65536);
+	int sentinel = 1 << 17;
+	put_vli(output, sentinel);
 	put_vli(output, 255);
 	fclose(input);
 	fclose(output);

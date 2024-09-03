@@ -80,9 +80,9 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	short value = 0;
-	int diff;
+	int diff, sentinel = 1 << 17;
 	while ((diff = get_vli(input)) >= 0) {
-		if (diff == 65536)
+		if (diff == sentinel)
 			break;
 		value += sgn_int(diff);
 		fwrite(&value, 2, 1, output);

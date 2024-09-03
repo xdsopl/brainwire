@@ -1,3 +1,4 @@
+CFLAGS = -std=c99 -W -Wall -Ofast
 test: encode decode
 	./encode input.wav output.brainwire
 	./decode output.brainwire output.wav

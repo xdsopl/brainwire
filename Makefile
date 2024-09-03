@@ -5,3 +5,5 @@ test: encode decode
 	diff -q -s input.wav output.wav
 encode: encode.c
 decode: decode.c
+clean:
+	rm -f encode decode

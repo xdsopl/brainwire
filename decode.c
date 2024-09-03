@@ -38,20 +38,19 @@ int read_bits(FILE *file, int *b, int n) {
 	return 0;
 }
 
-int get_vli(FILE *file) {
-	static int order;
+int get_vli(FILE *file, int *order) {
 	int val, sum = 0, ret;
 	while ((ret = get_bit(file)) == 0) {
-		sum += 1 << order;
-		order += 1;
+		sum += 1 << *order;
+		*order += 1;
 	}
 	if (ret < 0)
 		return ret;
-	if ((ret = read_bits(file, &val, order)))
+	if ((ret = read_bits(file, &val, *order)))
 		return ret;
-	order -= 1;
-	if (order < 0)
-		order = 0;
+	*order -= 1;
+	if (*order < 0)
+		*order = 0;
 	return val + sum;
 }
 
@@ -81,7 +80,8 @@ int main(int argc, char **argv) {
 	}
 	short value = 0;
 	int pred, err, sentinel = 1 << 17;
-	while ((pred = get_vli(input)) >= 0 && (err = get_vli(input)) >= 0) {
+	int pred_order = 0, err_order = 0;
+	while ((pred = get_vli(input, &pred_order)) >= 0 && (err = get_vli(input, &err_order)) >= 0) {
 		if (pred == sentinel)
 			break;
 		value += sgn_int(pred) * 64 + sgn_int(err);

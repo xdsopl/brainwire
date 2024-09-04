@@ -93,6 +93,8 @@ int main(int argc, char **argv) {
 	int sentinel = 1024;
 	put_vli(output, sentinel);
 	put_vli(output, 255);
+	int ratio = (ftell(input) * 100) / ftell(output);
+	fprintf(stderr, "compression ratio = %d%%\n", ratio);
 	fclose(input);
 	fclose(output);
 	return 0;

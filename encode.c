@@ -8,6 +8,10 @@ Copyright 2024 Ahmet Inan <xdsopl@gmail.com>
 #include <stdlib.h>
 #include <assert.h>
 
+int uns_int(int x) {
+	return (x << 1) ^ (x >> 31);
+}
+
 int put_bit(FILE *file, int b) {
 	static int acc, cnt;
 	acc |= !!b << cnt++;
@@ -84,9 +88,7 @@ int main(int argc, char **argv) {
 		assert(value == recon(quant));
 		int diff = quant - prev;
 		prev = quant;
-		put_vli(output, abs(diff));
-		if (diff)
-			put_bit(output, diff < 0);
+		put_vli(output, uns_int(diff));
 	}
 	int sentinel = 1024;
 	put_vli(output, sentinel);

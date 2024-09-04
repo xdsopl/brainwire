@@ -7,6 +7,10 @@ Copyright 2024 Ahmet Inan <xdsopl@gmail.com>
 #include <stdio.h>
 #include <stdlib.h>
 
+int sgn_int(int x) {
+	return (x >> 1) ^ -(x & 1);
+}
+
 int get_bit(FILE *file) {
 	static int cnt, acc;
 	if (!cnt) {
@@ -84,9 +88,7 @@ int main(int argc, char **argv) {
 	while ((diff = get_vli(input)) >= 0) {
 		if (diff == sentinel)
 			break;
-		if (diff && get_bit(input))
-			diff = -diff;
-		quant += diff;
+		quant += sgn_int(diff);
 		short value = recon(quant);
 		fwrite(&value, 2, 1, output);
 	}

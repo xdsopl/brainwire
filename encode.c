@@ -29,22 +29,22 @@ int write_bits(FILE *file, int b, int n) {
 	return 0;
 }
 
-int put_vli(FILE *file, int *order, int val)
-{
+int put_vli(FILE *file, int val) {
+	static int order;
 	int ret;
-	while (val >= 1 << *order) {
+	while (val >= 1 << order) {
 		if ((ret = put_bit(file, 0)))
 			return ret;
-		val -= 1 << *order;
-		*order += 1;
+		val -= 1 << order;
+		order += 1;
 	}
 	if ((ret = put_bit(file, 1)))
 		return ret;
-	if ((ret = write_bits(file, val, *order)))
+	if ((ret = write_bits(file, val, order)))
 		return ret;
-	*order -= 1;
-	if (*order < 0)
-		*order = 0;
+	order -= 1;
+	if (order < 0)
+		order = 0;
 	return 0;
 }
 
@@ -78,19 +78,19 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	short value;
-	int order = 0, prev = 0;
+	int prev = 0;
 	while (fread(&value, 2, 1, input) == 1) {
 		int quant = (value + 32768) / 64 - 512;
 		assert(value == recon(quant));
 		int diff = quant - prev;
 		prev = quant;
-		put_vli(output, &order, abs(diff));
+		put_vli(output, abs(diff));
 		if (diff)
 			put_bit(output, diff < 0);
 	}
 	int sentinel = 1024;
-	put_vli(output, &order, sentinel);
-	put_vli(output, &order, 255);
+	put_vli(output, sentinel);
+	put_vli(output, 255);
 	fclose(input);
 	fclose(output);
 	return 0;

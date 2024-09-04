@@ -50,6 +50,11 @@ int get_vli(FILE *file, int *order) {
 	return val + sum;
 }
 
+int recon(int x) {
+	// mapping found by Dominic Szablewski
+	return x * 64.061577 + (x < 0 ? 31.527393 : 31.534184);
+}
+
 int main(int argc, char **argv) {
 	if (argc != 3) {
 		fprintf(stderr, "usage: %s input.brainwire output.wav\n", *argv);
@@ -74,17 +79,14 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "could not write 44 bytes to %s\n", argv[2]);
 		return 1;
 	}
-	short value = 0;
-	int pred, err, sentinel = 1024;
-	int pred_order = 0, err_order = 0;
-	while ((pred = get_vli(input, &pred_order)) >= 0 && (err = get_vli(input, &err_order)) >= 0) {
-		if (pred == sentinel)
+	int diff, quant = 0, order = 0, sentinel = 1024;
+	while ((diff = get_vli(input, &order)) >= 0) {
+		if (diff == sentinel)
 			break;
-		if (pred && get_bit(input))
-			pred = -pred;
-		if (err && get_bit(input))
-			err = -err;
-		value += pred * 64 + err;
+		if (diff && get_bit(input))
+			diff = -diff;
+		quant += diff;
+		short value = recon(quant);
 		fwrite(&value, 2, 1, output);
 	}
 	fclose(input);

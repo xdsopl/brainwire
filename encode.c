@@ -6,14 +6,7 @@ Copyright 2024 Ahmet Inan <xdsopl@gmail.com>
 
 #include <stdio.h>
 #include <stdlib.h>
-
-int div_rnd(int n, int d) {
-	if (n < 0)
-		n -= d / 2;
-	else if (n > 0)
-		n += d / 2;
-	return n / d;
-}
+#include <assert.h>
 
 int put_bit(FILE *file, int b) {
 	static int acc, cnt;
@@ -55,6 +48,11 @@ int put_vli(FILE *file, int *order, int val)
 	return 0;
 }
 
+int recon(int x) {
+	// mapping found by Dominic Szablewski
+	return x * 64.061577 + (x < 0 ? 31.527393 : 31.534184);
+}
+
 int main(int argc, char **argv) {
 	if (argc != 3) {
 		fprintf(stderr, "usage: %s input.wav output.brainwire\n", *argv);
@@ -79,23 +77,20 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "could not write 44 bytes to %s\n", argv[2]);
 		return 1;
 	}
-	short value, prev = 0;
-	int pred_order = 0, err_order = 0;
+	short value;
+	int order = 0, prev = 0;
 	while (fread(&value, 2, 1, input) == 1) {
-		int diff = value - prev;
-		prev = value;
-		int pred = div_rnd(diff, 64);
-		put_vli(output, &pred_order, abs(pred));
-		int err = diff - pred * 64;
-		put_vli(output, &err_order, abs(err));
-		if (pred)
-			put_bit(output, pred < 0);
-		if (err)
-			put_bit(output, err < 0);
+		int quant = (value + 32768) / 64 - 512;
+		assert(value == recon(quant));
+		int diff = quant - prev;
+		prev = quant;
+		put_vli(output, &order, abs(diff));
+		if (diff)
+			put_bit(output, diff < 0);
 	}
 	int sentinel = 1024;
-	put_vli(output, &pred_order, sentinel);
-	put_vli(output, &pred_order, 255);
+	put_vli(output, &order, sentinel);
+	put_vli(output, &order, 255);
 	fclose(input);
 	fclose(output);
 	return 0;

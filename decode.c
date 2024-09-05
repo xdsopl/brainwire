@@ -38,21 +38,15 @@ int read_bits(FILE *file, int *b, int n) {
 	return 0;
 }
 
-int get_vli(FILE *file) {
-	static int order;
-	int val, sum = 0, ret;
-	while ((ret = get_bit(file)) == 0) {
-		sum += 1 << order;
-		order += 1;
-	}
+int get_rice(FILE *file, int k) {
+	int q = 0, r, ret;
+	while ((ret = get_bit(file)) == 0)
+		++q;
 	if (ret < 0)
 		return ret;
-	if ((ret = read_bits(file, &val, order)))
+	if ((ret = read_bits(file, &r, k)))
 		return ret;
-	order -= 1;
-	if (order < 0)
-		order = 0;
-	return val + sum;
+	return (q << k) | r;
 }
 
 int recon(int x) {
@@ -84,8 +78,8 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "could not write 44 bytes to %s\n", argv[2]);
 		return 1;
 	}
-	int diff, quant = 0, sentinel = 1024;
-	while ((diff = get_vli(input)) >= 0) {
+	int diff, quant = 0, sentinel = 1024, k = 3;
+	while ((diff = get_rice(input, k)) >= 0) {
 		if (diff == sentinel)
 			break;
 		quant += sgn_int(diff);

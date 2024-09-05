@@ -33,22 +33,15 @@ int write_bits(FILE *file, int b, int n) {
 	return 0;
 }
 
-int put_vli(FILE *file, int val) {
-	static int order;
+int put_rice(FILE *file, int x, int k) {
 	int ret;
-	while (val >= 1 << order) {
+	for (int q = x >> k; q; --q)
 		if ((ret = put_bit(file, 0)))
 			return ret;
-		val -= 1 << order;
-		order += 1;
-	}
 	if ((ret = put_bit(file, 1)))
 		return ret;
-	if ((ret = write_bits(file, val, order)))
+	if ((ret = write_bits(file, x & ((1 << k) - 1), k)))
 		return ret;
-	order -= 1;
-	if (order < 0)
-		order = 0;
 	return 0;
 }
 
@@ -82,17 +75,17 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	short value;
-	int prev = 0;
+	int prev = 0, k = 3;
 	while (fread(&value, 2, 1, input) == 1) {
 		int quant = (value + 32768) / 64 - 512;
 		assert(value == recon(quant));
 		int diff = quant - prev;
 		prev = quant;
-		put_vli(output, uns_int(diff));
+		put_rice(output, uns_int(diff), k);
 	}
 	int sentinel = 1024;
-	put_vli(output, sentinel);
-	put_vli(output, 255);
+	put_rice(output, sentinel, k);
+	put_rice(output, 255, k);
 	int ratio = (ftell(input) * 100) / ftell(output);
 	fprintf(stderr, "compression ratio = %d%%\n", ratio);
 	fclose(input);

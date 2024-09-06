@@ -38,10 +38,15 @@ int read_bits(FILE *file, int *b, int n) {
 	return 0;
 }
 
-int get_rice(FILE *file, int k) {
-	int q = 0, r, ret;
+int get_rice(FILE *file) {
+	static int run;
+	int k = run / 32, q = 0, r, ret;
 	while ((ret = get_bit(file)) == 0)
 		++q;
+	if (q)
+		++run;
+	else if (run > 0)
+		--run;
 	if (ret < 0)
 		return ret;
 	if ((ret = read_bits(file, &r, k)))
@@ -78,8 +83,8 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "could not write 44 bytes to %s\n", argv[2]);
 		return 1;
 	}
-	int diff, quant = 0, sentinel = 1024, k = 3;
-	while ((diff = get_rice(input, k)) >= 0) {
+	int diff, quant = 0, sentinel = 1024;
+	while ((diff = get_rice(input)) >= 0) {
 		if (diff == sentinel)
 			break;
 		quant += sgn_int(diff);

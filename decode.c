@@ -39,7 +39,7 @@ int read_bits(FILE *file, int *b, int n) {
 }
 
 int get_rice(FILE *file) {
-	static int run;
+	static int run = 100;
 	int k = run / 32, q = 0, r, ret;
 	while ((ret = get_bit(file)) == 0)
 		++q;

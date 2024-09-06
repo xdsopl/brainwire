@@ -34,7 +34,7 @@ int write_bits(FILE *file, int b, int n) {
 }
 
 int put_rice(FILE *file, int x) {
-	static int run;
+	static int run = 100;
 	int ret, k = run / 32, q = x >> k;
 	if (q)
 		++run;

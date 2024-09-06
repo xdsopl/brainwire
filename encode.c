@@ -40,7 +40,7 @@ int put_rice(FILE *file, int x, int k) {
 			return ret;
 	if ((ret = put_bit(file, 1)))
 		return ret;
-	if ((ret = write_bits(file, x & ((1 << k) - 1), k)))
+	if ((ret = write_bits(file, x, k)))
 		return ret;
 	return 0;
 }
